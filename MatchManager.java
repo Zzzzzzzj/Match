@@ -17,7 +17,7 @@ public class MatchManager {
      * 直到本次匹配出结果
      */
 
-    static int teamMaxCount = 5;
+    static int teamMaxCount = 15;
 
     /**
      * 规则 20个5（包括5以下的队伍），凑出一对最合适的5 v 5
@@ -43,22 +43,40 @@ public class MatchManager {
      */
     static Map<Team, Set<Team>> blueTeams = new HashMap<>();
 
+
+
+    public static void addGroup(){
+        //take me to the top, i'm ready for;
+        for (int i = 1; i <= 100 ; i++){
+            //人数在1和5之间随机
+          //  int count = (int) (Math.random() * 5 + 1);
+            int count = 1;
+
+            //1到10000之前随机
+            int fight = (int) (Math.random() * 10000 + 1);
+            Group group = new Group(i, count, fight);
+            allGroup.put(i, group);
+        }
+
+    }
+
+
     public static void main(String[] args) {
 //        map.put(1, new Group(1,3, 3000));
 //        map.put(2, new Group(2,2, 1000));
 //        map.put(3, new Group(3,4, 5000));
 //        map.put(4, new Group(4, 1, 2000));
-        allGroup.put(5, new Group(5, 5, 6000));
-        allGroup.put(4, new Group(4, 1, 2000));
-        allGroup.put(3, new Group(3, 4, 5000));
-        allGroup.put(2, new Group(2, 2, 1000));
-        allGroup.put(1, new Group(1, 3, 3000));
-
+//        allGroup.put(5, new Group(5, 5, 6000));
+//        allGroup.put(4, new Group(4, 1, 2000));
+//        allGroup.put(3, new Group(3, 4, 5000));
+//        allGroup.put(2, new Group(2, 2, 1000));
+//        allGroup.put(1, new Group(1, 3, 3000));
+        long start = System.currentTimeMillis();
+        addGroup();
         for (Map.Entry<Integer, Group> entry : allGroup.entrySet()){
             Team team = new Team();
             function(team, entry.getKey() - 1);
         }
-
 
         //遍历出所有组成teamA的可能
         Iterator<Team> iterator = redTeams.iterator();
@@ -124,15 +142,25 @@ public class MatchManager {
             }
         }
 
+        long end = System.currentTimeMillis();
+        long time = end - start;
+        System.out.println("消耗时间:" + time + "毫秒");
+
     }
 
 
     public static boolean canMerge(Team team, Group group2) {
+        //如果team中有了这个group 不能合并
+        for (Group group : team.getGroups()){
+            if (group.getId() == group2.getId()){
+                return false;
+            }
+        }
 
 
         //平均战力相差太大不能合并
         int abs = Math.abs(team.getAvgFight() - group2.getAvgFight());
-        if (abs > 5000)
+        if (abs > 9999999)
             return false;
         //超过人数上限不能合并
         int allCount1 = 0;
@@ -167,7 +195,7 @@ public class MatchManager {
         for (Group group1 : copy.getGroups()){
             allCount1 += group1.getCount();
         }
-        if (allCount1 == 5){
+        if (allCount1 == teamMaxCount){
             //合并完成
             redTeams.add(copy);
             Map<Integer, Group> mergeGroup = new HashMap<>();
@@ -210,7 +238,7 @@ public class MatchManager {
                 continue;
             }
             Team team = new Team();
-            function2(team, entry.getKey() - 1, teamA, mergeGroup);
+            function2(team, entry.getKey() , teamA, mergeGroup);
         }
 
     }
@@ -229,7 +257,7 @@ public class MatchManager {
                 continue;
             }
             //只往后找
-            if (entry.getKey() <= groupId){
+            if (entry.getKey() < groupId){
                 continue;
             }
             if (canMerge(team, entry.getValue())){
@@ -261,7 +289,7 @@ public class MatchManager {
         for (Group group1 : copy.getGroups()){
             allCount1 += group1.getCount();
         }
-        if (allCount1 == 5){
+        if (allCount1 == teamMaxCount){
             //合并完成
             if (!blueTeams.containsKey(teamA)){
                 Set<Team> blues = new HashSet<>();
